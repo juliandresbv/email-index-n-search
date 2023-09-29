@@ -1,0 +1,46 @@
+# OS
+.DS_Store
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# dependencies
+node_modules
+
+# Compliled 
+dist
+dist-ssr
+*.local
+
+# Tests
+coverage
+/cypress/videos/
+/cypress/screenshots/
+
+# Editor directories and files
+/.idea
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# .env files
+.env

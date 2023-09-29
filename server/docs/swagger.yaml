@@ -1,0 +1,11 @@
+basePath: /
+host: 0.0.0.0:7070
+info:
+  contact:
+    email: julian.berval@gmail.com
+    name: Julian Bermudez Valderrama
+  description: This is the API doc for Emails API.
+  title: Emails API
+  version: 1.0.0
+paths: {}
+swagger: "2.0"
