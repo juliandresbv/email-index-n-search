@@ -17,9 +17,9 @@ This project contains the source code for the project of "email-index-n-search".
 Before running the application, you need to have the following dependencies installed on your system:
 
 * Docker: https://www.docker.com/
-* ZincSearch (Docker Image): https://zincsearch-docs.zinc.dev/installation/
 * Go (>= v1.21.1): https://go.dev/
 * NodeJS (>= v18): https://nodejs.org
+* ZincSearch (Docker Image): https://zincsearch-docs.zinc.dev/installation/ (no need to download, already configured on the docker-compose.yml file).
 
 ## Quick Start
 
@@ -69,7 +69,7 @@ docker compose up -d
         npm install
         ```
 
-3. Set the environment variables on a .env file for every app following the form of the .env.example file on each app's directory.
+3. Create and set the environment variables on a `.env` file for every app following the form of the `.env.example` file on each app's directory.
 
 ### Running the apps
 
@@ -77,7 +77,7 @@ Follow the steps below to quickly set up the apps:
 
 1. Indexer:
 
-    0. About the download and decompression dataset:
+    0. About the download and decompression of the dataset:
 
         The `indexer` app downloads and decompresses the dataset automatically. However, if you want to do it manually, you can do so by downloadloading the dataset from the following link: https://www.cs.cmu.edu/~./enron/enron_mail_20110402.tgz. Then, placing it on the `indexer/data` and decompressing it.
 

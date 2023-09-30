@@ -10,7 +10,7 @@ services:
       - ZINC_FIRST_ADMIN_USER=${ZINC_FIRST_ADMIN_USER}
       - ZINC_FIRST_ADMIN_PASSWORD=${ZINC_FIRST_ADMIN_PASSWORD}
     ports:
-      - "4080:4080"
+      - "${ZINC_PORT}:${ZINC_PORT}"
     volumes:
       - data:/data
 

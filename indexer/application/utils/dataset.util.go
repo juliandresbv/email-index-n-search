@@ -463,9 +463,10 @@ func writeJsonFile(
 	defer data.Close()
 
 	nFilesChunk := len(filesPathsChunk)
+	indexName := "emails"
 
 	jsonFile.WriteString("{\n")
-	jsonFile.WriteString("\"index\": \"emails\",\n")
+	jsonFile.WriteString(fmt.Sprintf("\"index\": \"%v\",\n", indexName))
 	jsonFile.WriteString("\"records\": [\n")
 
 	recordsLines := ""
