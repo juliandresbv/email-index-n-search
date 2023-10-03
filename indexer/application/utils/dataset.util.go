@@ -177,7 +177,7 @@ func DatasetToJsonFiles() {
 	numFiles := len(datasetFilesPaths)
 	numJsonFilesToCreate := math.Ceil(float64(numFiles) / float64(chunkSize))
 
-	goRoutinesProportion := 0.25
+	goRoutinesProportion := 0.05
 	numGoRoutines := int(numJsonFilesToCreate * goRoutinesProportion)
 
 	var wg sync.WaitGroup

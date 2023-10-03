@@ -69,6 +69,8 @@ func (emailsUseCase *EmailsUseCase) BulkLoadEmails() error {
 
 	jsonFilesPaths, _ := utils.GetFilesPaths(jsonFilesPath, ".json")
 	numJsonFiles := len(jsonFilesPaths)
+	recordsPerJsonFile := 1000
+	numApproxTotalEmails := numJsonFiles * recordsPerJsonFile
 
 	goRoutinesProportion := 0.05
 	numGoRoutines := int(float64(numJsonFiles) * goRoutinesProportion)
@@ -87,15 +89,16 @@ func (emailsUseCase *EmailsUseCase) BulkLoadEmails() error {
 		go emailsUseCase.bulkLoadJsonFile(jsonFilePath, numJsonFiles, bulkLoadResultFile, sem, &wg)
 
 		numLoadedFiles := index + 1
+		numLoadedEmails := numLoadedFiles * recordsPerJsonFile
 
 		if (numLoadedFiles)%numGoRoutines == 0 || (numLoadedFiles) == numJsonFiles {
-			logger.Printf("%d of %d json files loaded into DB\n", numLoadedFiles, numJsonFiles)
+			logger.Printf("%d of ~%d emails loaded into DB\n", numLoadedEmails, numApproxTotalEmails)
 		}
 	}
 
 	wg.Wait()
 
-	logger.Println("json files bulk loaded into DB")
+	logger.Println("emails bulk loaded into DB successfully!")
 
 	return nil
 }

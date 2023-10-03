@@ -166,7 +166,7 @@ Below are the graphics of some results of the memory profiling analysis:
 
 At the initial stage of the development of the `indexer` app, the indexing process was developed with a [**sequential**](https://www.wikiwand.com/en/Sequential_algorithm) programming approach. However, after reviewing and assessing the resources consumed on the execution, it was found that tasks such as reading the dataset and parsing the data were taking a lot of resources and time while running.
 
-Looking at the OS Activity Monitor, the memory consumed by the indexer with this approach was around 2 GB and it was increasing as time passed.
+Looking at the OS Activity Monitor, the memory consumed by the indexer with the sequential programming approach was around 2.5 GB and it was increasing as time passed.
 
 Therefore, another kind of approach should be implemented to improve the performance of the app.
 
@@ -180,9 +180,9 @@ The tasks that were re-factored to be executed concurrently were:
 
 - Reading and parsing the dataset, and producing JSON files to index:
 
-    The reading and parsing of the dataset is split into chunks of 1000 files (this will be further explained in the JSON file size section) and uses a proportion of 25% of the amount of the chunks to process.
+    The reading and parsing of the dataset is split into chunks of 1000 files (this will be further explained in the JSON file size section) and uses a proportion of 5% of the amount of the chunks to process.
     
-    For the specific dataset used in this project, the amount of files to read is around 517000 files, resulting in 517 chunks of size 1000, and 143 (the result of the 25% of 517 chunks) go routines spawned to process each chunk.
+    For the specific dataset used in this project, the amount of files to read is around 517000 files, resulting in 517 chunks of size 1000, and around 25 (the result of the 5% of 517 chunks) go routines spawned to process each chunk.
 
     The concurrent programming approach uses a [semaphore](https://www.wikiwand.com/en/Semaphore_(programming)) logic to control the amount of go routines spawned at the same time. This is done to avoid the overuse of resources and to limit the amount of concurrent go routines running.
 
@@ -197,6 +197,8 @@ The tasks that were re-factored to be executed concurrently were:
     The proportion of go routines spawned to bulk load the JSON files concurrently is 5% of the amount of JSON files produced. This percentage was tuned to avoid overloading the ZincSearch API.
 
     Additionally, a [throttling](https://www.wikiwand.com/en/Rate_limiting) logic was also implemented to send HTTP requests every 750 milliseconds.
+
+Looking at the OS Activity Monitor, the memory consumed by the indexer with the concurrent approach was around 500 MB and it was stable as time passed.
 
 #### JSON file size
 
