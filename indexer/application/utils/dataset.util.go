@@ -199,7 +199,7 @@ func DatasetToJsonFiles() {
 		wg.Add(1)
 		go datasetChunkToJsonFile(filesPathsChunk, chunkId, sem, &wg)
 
-		logger.Printf("%v of %v emails to json file\n", chunkEnd, numFiles)
+		logger.Printf("%v out of %v emails to json file\n", chunkEnd, numFiles)
 	}
 
 	wg.Wait()
@@ -331,7 +331,10 @@ func downloadFileChunk(
 		if n == 0 {
 			break
 		}
-		if _, err := writer.WriteAt(buf[:n], int64(startByte)); err != nil {
+
+		_, err = writer.WriteAt(buf[:n], int64(startByte))
+
+		if err != nil {
 			logger.Println("error writing file to download: ", err)
 
 			return err
@@ -385,15 +388,21 @@ func decompressTgzFile() error {
 
 		switch tarHeader.Typeflag {
 		case tar.TypeDir:
-			if _, err := os.Stat(target); err != nil {
-				if err := os.MkdirAll(target, os.FileMode(tarHeader.Mode)); err != nil {
+			_, err := os.Stat(target)
+
+			if err != nil {
+				err := os.MkdirAll(target, os.FileMode(tarHeader.Mode))
+
+				if err != nil {
 					logger.Println("error creating directory: ", err)
 
 					return err
 				}
 			}
 		case tar.TypeReg:
-			if err := os.MkdirAll(filepath.Dir(target), 0755); err != nil {
+			err := os.MkdirAll(filepath.Dir(target), 0755)
+
+			if err != nil {
 				logger.Println("error creating directory: ", err)
 
 				return err
@@ -407,7 +416,9 @@ func decompressTgzFile() error {
 				return err
 			}
 
-			if _, err := io.Copy(file, tarReader); err != nil {
+			_, err = io.Copy(file, tarReader)
+
+			if err != nil {
 				logger.Println("error copying file: ", err)
 
 				file.Close()
@@ -427,6 +438,7 @@ func datasetChunkToJsonFile(
 	wg *sync.WaitGroup,
 ) error {
 	defer wg.Done()
+	defer func() { <-sem }()
 
 	err := writeJsonFile(filesPathsChunk, chunkId)
 
@@ -435,8 +447,6 @@ func datasetChunkToJsonFile(
 
 		return err
 	}
-
-	<-sem
 
 	return nil
 }
@@ -458,21 +468,19 @@ func writeJsonFile(
 
 	defer jsonFile.Close()
 
-	var data *os.File
+	var fileData *os.File
 
-	defer data.Close()
+	defer fileData.Close()
 
-	nFilesChunk := len(filesPathsChunk)
+	numFilesChunk := len(filesPathsChunk)
 	indexName := "emails"
 
 	jsonFile.WriteString("{\n")
 	jsonFile.WriteString(fmt.Sprintf("\"index\": \"%v\",\n", indexName))
 	jsonFile.WriteString("\"records\": [\n")
 
-	recordsLines := ""
-
 	for index, path := range filesPathsChunk {
-		fileData, err := os.Open(path)
+		fileData, err = os.Open(path)
 
 		if err != nil {
 			logger.Println("error opening file: ", err)
@@ -515,31 +523,33 @@ func writeJsonFile(
 				}
 			}
 
-			if slices.Contains(ignoredMetadataHeadersKeys, currMetadataKey) {
-				continue
-			} else if !hasBodyStarted {
-				lineContent := line
-
-				if isMetadataLine {
-					lineMetadataHeader := emailMetadataHeadersMap[currMetadataKey]
-
-					lineContent = strings.TrimSpace(lineContent)
-					lineContent = lineContent[len(lineMetadataHeader):]
-					lineContent = strings.TrimSpace(lineContent)
-
-					if len(lineContent) <= 0 {
-						continue
-					}
-
-					emailMap[currMetadataKey] = lineContent
+			if !hasBodyStarted {
+				if slices.Contains(ignoredMetadataHeadersKeys, currMetadataKey) {
+					continue
 				} else {
-					lineContent = strings.TrimSpace(lineContent)
+					lineContent := line
 
-					if len(lineContent) <= 0 {
-						continue
+					if isMetadataLine {
+						lineMetadataHeader := emailMetadataHeadersMap[currMetadataKey]
+
+						lineContent = strings.TrimSpace(lineContent)
+						lineContent = lineContent[len(lineMetadataHeader):]
+						lineContent = strings.TrimSpace(lineContent)
+
+						if len(lineContent) <= 0 {
+							continue
+						}
+
+						emailMap[currMetadataKey] = lineContent
+					} else {
+						lineContent = strings.TrimSpace(lineContent)
+
+						if len(lineContent) <= 0 {
+							continue
+						}
+
+						emailMap[currMetadataKey] += lineContent
 					}
-
-					emailMap[currMetadataKey] += lineContent
 				}
 			} else {
 				emailMap["Body"] += line
@@ -554,14 +564,12 @@ func writeJsonFile(
 			return err
 		}
 
-		if index < nFilesChunk-1 {
-			recordsLines += fmt.Sprintf("%v,\n", string(emailMapJson))
+		if index < numFilesChunk-1 {
+			jsonFile.WriteString(fmt.Sprintf("%v,\n", string(emailMapJson)))
 		} else {
-			recordsLines += fmt.Sprintf("%v\n", string(emailMapJson))
+			jsonFile.WriteString(fmt.Sprintf("%v\n", string(emailMapJson)))
 		}
 	}
-
-	jsonFile.WriteString(recordsLines)
 
 	jsonFile.WriteString("]\n")
 	jsonFile.WriteString("}\n")

@@ -61,9 +61,9 @@ func (emailsUseCase *EmailsUseCase) BulkLoadEmails() error {
 		return err
 	}
 
-	bulkLoadResultFile.WriteString("\"responseStatusCode\",\"responseDataMessage\",\"jsonFile\"\n")
-
 	defer bulkLoadResultFile.Close()
+
+	bulkLoadResultFile.WriteString("\"responseStatusCode\",\"responseDataMessage\",\"jsonFile\"\n")
 
 	logger.Println("bulk loading emails into DB...")
 
@@ -71,6 +71,13 @@ func (emailsUseCase *EmailsUseCase) BulkLoadEmails() error {
 	numJsonFiles := len(jsonFilesPaths)
 	recordsPerJsonFile := 1000
 	numApproxTotalEmails := numJsonFiles * recordsPerJsonFile
+
+	if numJsonFiles <= 0 {
+		errorStr := "no json files found for bulk load"
+
+		logger.Println(errorStr)
+		return errors.New(errorStr)
+	}
 
 	goRoutinesProportion := 0.05
 	numGoRoutines := int(float64(numJsonFiles) * goRoutinesProportion)
@@ -91,8 +98,8 @@ func (emailsUseCase *EmailsUseCase) BulkLoadEmails() error {
 		numLoadedFiles := index + 1
 		numLoadedEmails := numLoadedFiles * recordsPerJsonFile
 
-		if (numLoadedFiles)%numGoRoutines == 0 || (numLoadedFiles) == numJsonFiles {
-			logger.Printf("%d of ~%d emails loaded into DB\n", numLoadedEmails, numApproxTotalEmails)
+		if numLoadedFiles%numGoRoutines == 0 || numLoadedFiles == numJsonFiles {
+			logger.Printf("%d out of ~%d emails loaded into DB\n", numLoadedEmails, numApproxTotalEmails)
 		}
 	}
 
@@ -111,6 +118,7 @@ func (emailsUseCase *EmailsUseCase) bulkLoadJsonFile(
 	wg *sync.WaitGroup,
 ) error {
 	defer wg.Done()
+	defer func() { <-sem }()
 
 	file, err := os.Open(jsonFilePath)
 
@@ -144,10 +152,10 @@ func (emailsUseCase *EmailsUseCase) bulkLoadJsonFile(
 	)
 
 	if err != nil {
+		logger.Println("Error bulk loading json file: ", err)
+
 		return err
 	}
-
-	<-sem
 
 	return nil
 }

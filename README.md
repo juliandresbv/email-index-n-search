@@ -201,7 +201,7 @@ The tasks that were re-factored to be executed concurrently were:
 
     Additionally, a [throttling](https://www.wikiwand.com/en/Rate_limiting) logic was also implemented to send HTTP requests every 750 milliseconds.
 
-Looking at the OS Activity Monitor, the memory consumed by the indexer with the concurrent approach was around 500 MB and it was stable as time passed.
+Looking at the OS Activity Monitor, the memory consumed by the indexer with the concurrent approach was around 300 MB and it was stable as time passed.
 
 #### JSON file size
 
