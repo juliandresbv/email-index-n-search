@@ -2,24 +2,19 @@ package apidocs
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/go-chi/chi/v5"
 	httpswagger "github.com/swaggo/http-swagger"
+
+	customlogger "pkg/custom-logger"
 )
 
-func NewApiDocs(server *chi.Mux) {
-	host := os.Getenv("HOST")
-	port := os.Getenv("PORT")
+var logger = customlogger.NewLogger()
 
-	if host == "" {
-		host = "0.0.0.0"
-	}
-	if port == "" {
-		port = "7070"
-	}
-
+func NewApiDocs(server *chi.Mux, hostPort string) {
 	server.Get("/docs/*", httpswagger.Handler(
-		httpswagger.URL(fmt.Sprintf("http://%v:%v/docs/doc.json", host, port)),
+		httpswagger.URL(fmt.Sprintf("http://%v/docs/doc.json", hostPort)),
 	))
+
+	logger.Printf("API docs running on: http://%v/docs/index.html", hostPort)
 }

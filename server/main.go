@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 
@@ -40,7 +41,7 @@ func main() {
 	server.Use(middleware.Logger)
 	server.Use(render.SetContentType(render.ContentTypeJSON))
 	server.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"*", "http://localhost:5173", "http://0.0.0.0:5173"},
+		AllowedOrigins:   []string{"*"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
@@ -62,11 +63,13 @@ func main() {
 		port = "7070"
 	}
 
-	apidocs.NewApiDocs(server)
+	hostPort := fmt.Sprintf("%v:%v", host, port)
 
-	logger.Println("Server is running on port " + port)
+	apidocs.NewApiDocs(server, hostPort)
 
-	err := http.ListenAndServe(":"+port, server)
+	logger.Printf("Server is running on: http://%v", hostPort)
+
+	err := http.ListenAndServe(hostPort, server)
 
 	if err != nil {
 		logger.Println(err)
