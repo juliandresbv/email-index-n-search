@@ -22,7 +22,9 @@
       <div class="mt-5">
         <div class="mt-2">
           <div class="font-bold">Subject:</div>
-          <div class="ml-1 mr-1 break-all">{{ selectedEmail.subject }}</div>
+          <div class="ml-1 mr-1 break-all">
+            {{ selectedEmail.subject ? selectedEmail.subject : '(No subject)' }}
+          </div>
         </div>
         <div class="mt-2">
           <div class="font-bold">Body:</div>
@@ -39,11 +41,17 @@
 </template>
 
 <script setup lang="ts">
+import type { Ref } from 'vue'
 import { storeToRefs } from 'pinia'
 
+import type { Email } from '../types'
 import { useEmailsStore } from '../stores'
 
 const emailsStore = useEmailsStore()
 
-const { selectedEmail } = storeToRefs(emailsStore)
+const {
+  selectedEmail
+}: {
+  selectedEmail: Ref<Email>
+} = storeToRefs(emailsStore)
 </script>
