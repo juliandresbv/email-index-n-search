@@ -12,13 +12,12 @@ import (
 
 func init() {
 	config.LoadEnvVars()
-
-	utils.DownloadAndDecompressDataset()
 }
 
 func main() {
 	defer profiling.SetupProfiling().Stop()
 
+	utils.DownloadAndDecompressDataset()
 	utils.DatasetToJsonFiles()
 
 	documentDbClient := documentdbclient.NewDocumentDbClient(dbclienttypes.DbClientConfig{})
