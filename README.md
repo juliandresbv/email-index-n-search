@@ -25,12 +25,15 @@ Before running the application, you need to have the following dependencies inst
 
 ### Initial setup
 
-Follow the steps below to quickly set up the apps:
+Follow the steps below to set up the apps:
 
 1. Clone the repository:
 
 ```bash
 git clone https://github.com/juliandresbv/email-index-n-search
+```
+
+```bash
 cd email-index-n-search/
 ```
 
@@ -73,7 +76,7 @@ docker compose up -d
 
 ### Running the apps
 
-Follow the steps below to quickly set up the apps:
+Follow the steps below to run the apps:
 
 1. Indexer:
 
@@ -81,7 +84,7 @@ Follow the steps below to quickly set up the apps:
     > 
     > About the download and decompression of the dataset:
     >
-    > The `indexer` app downloads and decompresses the dataset automatically. However, if you want to do it manually, you can do so by downloading the dataset from the following link: https://www.cs.cmu.edu/~./enron/enron_mail_20110402.tgz. Then, copy/move it to the `indexer/data` directory and decompress it.
+    > The `indexer` app downloads and decompresses the dataset automatically. However, if you want to do it manually, you can do so by downloading the dataset from the following link https://www.cs.cmu.edu/~./enron/enron_mail_20110402.tgz. Then, copy/move it to the `indexer/data` directory and decompress it.
     
     1. Open/re-use a terminal window/tab at the `indexer/` directory and follow the steps below:
 
@@ -102,18 +105,18 @@ Follow the steps below to quickly set up the apps:
 
 2. Server:
 
-    1. Open/re-use a terminal window/tab at the `indexer/` directory and follow the steps below:
+    1. Open/re-use a terminal window/tab at the `server/` directory and follow the steps below:
 
         - Dev mode:
 
             ```bash
-            make run-dev [prof.mode=<mode>]
+            make run-dev
             ```
 
         - Prod mode:
 
             ```bash
-            make run-prd [prof.mode=<mode>]
+            make run-prd
             ```
 
 3. Emails Search App:
@@ -126,19 +129,19 @@ Follow the steps below to quickly set up the apps:
             npm run dev [-- --port=<port>]
             ```
 
-        > Note: To run the app on a specific port, add the `--port=<port>` flag to the command above.
+        > Note: To run the app on a specific port, add the `-- --port=<port>` flag to the command above.
 
 ## Considerations
 
 ### Profiling
 
-To interactively see the profiling results, run the following commands on a terminal at the `indexer/` directory:
+To interactively see the profiling results, run the following commands on a terminal based at the `indexer/` directory:
 
 ```bash
-go tool pprof -http=:<port> ./profiling-results/<.pprof-file>
+go tool pprof -http=:<port> ./profiling-results/<pprof-file>
 ```
 
-Below are the graphics of some results of the memory profiling analysis:
+Below, there are the graphics of some results of the memory profiling analysis:
 
 - Pre-optimization memory profiling:
 
@@ -202,13 +205,11 @@ Looking at the OS Activity Monitor, the memory consumed by the indexer with the 
 
 #### JSON file size
 
-For indexing the emails to ZincSearch, a bulk load technique was considered the best option to go with, since the ZincSearch API provides two endpoints to bulk load documents.
-
-The specification of the bulk load V2 endpoint can be found [here](https://zincsearch-docs.zinc.dev/api/document/bulkv2/).
+For indexing the emails to ZincSearch, a bulk load technique was considered the best option to go with, since the ZincSearch API provides three endpoints to bulk load documents ([bulk load V1](https://zincsearch-docs.zinc.dev/api/document/bulk/), [bulk load V2](https://zincsearch-docs.zinc.dev/api/document/bulkv2/), [multidocuments upload](https://zincsearch-docs.zinc.dev/api/document/multi/)). The chosen endpoint was bulk load V2 API endpoint, since the format of the data to be indexed is a JSON file.
 
 At the first stage of the development, the size of the JSON files was 5000 records per file. However, after some testing, it was found that the size of the JSON files was too big and the indexing process was taking a lot of time to complete and was producing low latencies while consuming the API. The internal response time of the API was around 20000 milliseconds.
 
-Therefore, the size of the JSON files was reduced to 1000 records per file. This change improved the performance of the indexing process and the latencies while consuming the API. After this change, the internal response time of the API was around 200 milliseconds.
+Therefore, the size of the JSON files was reduced to 1000 records per file (considering the recommendations provided in the bulk load V1 API endpoint). This change improved the performance of the indexing process and the latencies while consuming the API. After this change, the internal response time of the API was around 200 milliseconds.
 
 As a remark, the trade-off between the size of the JSON files vs. the response time and throughput to the API was a key consideration in deciding the size of the JSON files. A smaller size of records for every JSON file will produce more files at the end, but it will result in better performance while consuming the API. So consuming more storage space is preferable to overloading ZincSearch API.
 
@@ -224,4 +225,4 @@ The trade-off of this change is that the code is less readable, since in a pract
 
 ### API documentation
 
-For a better understanding of the Server API, the documentation of the endpoints is available on the following link `http://localhost:<port>/docs/index.html` while the `server` is running.
+For a better understanding of the `Server` API, the OpenAPI documentation via Swagger is available on the following link `http://localhost:<port>/docs/index.html` while the `server` is running.
