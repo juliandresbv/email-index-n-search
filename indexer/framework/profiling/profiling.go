@@ -7,10 +7,10 @@ import (
 )
 
 const (
-	cpu       = "cpu"
-	mem       = "mem"
-	goroutine = "goroutine"
-	thread    = "thread"
+	cpuProfMode       = "cpu"
+	memProfMode       = "mem"
+	goRoutineProfMode = "goroutine"
+	threadProfMode    = "thread"
 )
 
 type DefaultProfile struct{}
@@ -20,18 +20,18 @@ func (DefaultProfile) Stop() {}
 func SetupProfiling() interface{ Stop() } {
 	profilingPath := "./profiling-results"
 
-	profileMode := flag.String("profile.mode", "", "enable profiling mode, one of [cpu, mem, goroutine, thread]")
+	profileMode := flag.String("prof.mode", "", "enable profiling mode, one of [cpu, mem, goroutine, thread]")
 
 	flag.Parse()
 
 	switch *profileMode {
-	case cpu:
+	case cpuProfMode:
 		return profile.Start(profile.CPUProfile, profile.ProfilePath(profilingPath))
-	case mem:
+	case memProfMode:
 		return profile.Start(profile.MemProfile, profile.ProfilePath(profilingPath))
-	case goroutine:
+	case goRoutineProfMode:
 		return profile.Start(profile.GoroutineProfile, profile.ProfilePath(profilingPath))
-	case thread:
+	case threadProfMode:
 		return profile.Start(profile.ThreadcreationProfile, profile.ProfilePath(profilingPath))
 	default:
 		return DefaultProfile{}

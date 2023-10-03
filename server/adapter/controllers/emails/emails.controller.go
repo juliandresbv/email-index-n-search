@@ -32,17 +32,16 @@ func NewEmailsController(server *chi.Mux, emailsUseCase usecases.IEmailsUseCase)
 
 // SearchEmails godoc
 //
-//	@Summary			Search emails
-//	@Description	Endpoint to search emails by term, limit, and page
-//	@Tags 				search emails
-//	@Accept				json
-//	@Produce			json
-//	@Param				searchEmailsDto body dtos.SearchEmailsDto true "Search emails DTO"
-//	@Success			200	{object}	types.SuccessResponse[responses.SearchEmailsResponse]{}
-//	@Failure			400	{object}	types.ErrorResponse{}
-//	@Failure			500	{object}	types.ErrorResponse{}
-//	@Router				/emails/search	[post]
-
+// @Summary			Search emails
+// @Description	Endpoint to search emails by term, limit, and page
+// @Tags 				search emails
+// @Accept			json
+// @Produce			json
+// @Param				searchEmailsDto body dtos.SearchEmailsDto true "Search emails DTO"
+// @Success			200	{object}	types.SuccessResponse[responses.SearchEmailsResponse]{}
+// @Failure			400	{object}	types.ErrorResponse{}
+// @Failure			500	{object}	types.ErrorResponse{}
+// @Router			/emails/search	[post]
 func (controller *EmailsController) SearchEmails(w http.ResponseWriter, r *http.Request) {
 	if r.ContentLength <= 0 {
 		render.Status(r, http.StatusBadRequest)

@@ -11,5 +11,151 @@
     },
     "host": "0.0.0.0:7070",
     "basePath": "/",
-    "paths": {}
+    "paths": {
+        "/emails/search": {
+            "post": {
+                "description": "Endpoint to search emails by term, limit, and page",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "search emails"
+                ],
+                "summary": "Search emails",
+                "parameters": [
+                    {
+                        "description": "Search emails DTO",
+                        "name": "searchEmailsDto",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dtos.SearchEmailsDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.SuccessResponse-responses_SearchEmailsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/types.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/types.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "dtos.SearchEmailsDto": {
+            "type": "object",
+            "properties": {
+                "limit": {
+                    "type": "integer"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "term": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.EmailModel": {
+            "type": "object",
+            "properties": {
+                "bcc": {
+                    "type": "string"
+                },
+                "body": {
+                    "type": "string"
+                },
+                "cc": {
+                    "type": "string"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "from": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "messageId": {
+                    "type": "string"
+                },
+                "subject": {
+                    "type": "string"
+                },
+                "to": {
+                    "type": "string"
+                },
+                "xBcc": {
+                    "type": "string"
+                },
+                "xCc": {
+                    "type": "string"
+                },
+                "xFileName": {
+                    "type": "string"
+                },
+                "xFolder": {
+                    "type": "string"
+                },
+                "xFrom": {
+                    "type": "string"
+                },
+                "xOrigin": {
+                    "type": "string"
+                },
+                "xTo": {
+                    "type": "string"
+                }
+            }
+        },
+        "responses.SearchEmailsResponse": {
+            "type": "object",
+            "properties": {
+                "emails": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.EmailModel"
+                    }
+                },
+                "hits": {
+                    "type": "integer"
+                }
+            }
+        },
+        "types.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                }
+            }
+        },
+        "types.SuccessResponse-responses_SearchEmailsResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/responses.SearchEmailsResponse"
+                }
+            }
+        }
+    }
 }

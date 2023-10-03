@@ -1,4 +1,68 @@
 basePath: /
+definitions:
+  dtos.SearchEmailsDto:
+    properties:
+      limit:
+        type: integer
+      page:
+        type: integer
+      term:
+        type: string
+    type: object
+  models.EmailModel:
+    properties:
+      bcc:
+        type: string
+      body:
+        type: string
+      cc:
+        type: string
+      date:
+        type: string
+      from:
+        type: string
+      id:
+        type: string
+      messageId:
+        type: string
+      subject:
+        type: string
+      to:
+        type: string
+      xBcc:
+        type: string
+      xCc:
+        type: string
+      xFileName:
+        type: string
+      xFolder:
+        type: string
+      xFrom:
+        type: string
+      xOrigin:
+        type: string
+      xTo:
+        type: string
+    type: object
+  responses.SearchEmailsResponse:
+    properties:
+      emails:
+        items:
+          $ref: '#/definitions/models.EmailModel'
+        type: array
+      hits:
+        type: integer
+    type: object
+  types.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  types.SuccessResponse-responses_SearchEmailsResponse:
+    properties:
+      data:
+        $ref: '#/definitions/responses.SearchEmailsResponse'
+    type: object
 host: 0.0.0.0:7070
 info:
   contact:
@@ -7,5 +71,35 @@ info:
   description: This is the API doc for Emails API.
   title: Emails API
   version: 1.0.0
-paths: {}
+paths:
+  /emails/search:
+    post:
+      consumes:
+      - application/json
+      description: Endpoint to search emails by term, limit, and page
+      parameters:
+      - description: Search emails DTO
+        in: body
+        name: searchEmailsDto
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.SearchEmailsDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.SuccessResponse-responses_SearchEmailsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+      summary: Search emails
+      tags:
+      - search emails
 swagger: "2.0"

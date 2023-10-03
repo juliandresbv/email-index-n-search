@@ -23,26 +23,25 @@ import (
 
 var logger = customlogger.NewLogger()
 
-//	@title				Emails API
-//	@version			1.0.0
-//	@description	This is the API doc for Emails API.
-
-//	@host					0.0.0.0:7070
-//	@BasePath			/
-
-//	@contact.name	Julian Bermudez Valderrama
-//	@contact.email	julian.berval@gmail.com
-
-func main() {
+func init() {
 	config.LoadEnvVars()
+}
 
+// @title					Emails API
+// @version				1.0.0
+// @description		This is the API doc for Emails API.
+// @host					0.0.0.0:7070
+// @BasePath			/
+// @contact.name	Julian Bermudez Valderrama
+// @contact.email	julian.berval@gmail.com
+func main() {
 	server := chi.NewRouter()
 
 	server.Use(middleware.Logger)
 	server.Use(render.SetContentType(render.ContentTypeJSON))
 	server.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"*", "http://localhost:5173", "http://0.0.0.0:5173"},
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
 		AllowCredentials: true,
@@ -53,8 +52,12 @@ func main() {
 	emailsUseCase := usecases.NewEmailsUseCase(searchDbClient)
 	emailscontroller.NewEmailsController(server, emailsUseCase)
 
+	host := os.Getenv("HOST")
 	port := os.Getenv("PORT")
 
+	if host == "" {
+		host = "0.0.0.0"
+	}
 	if port == "" {
 		port = "7070"
 	}
