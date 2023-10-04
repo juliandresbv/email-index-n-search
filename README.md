@@ -10,7 +10,7 @@
 
 ## Description
 
-This project contains the source code for the project "email-index-n-search". A set of apps that allow indexing and searching emails persisted on ZincSearch, "a search engine that does full-text indexing".
+This repository contains the source code for the project "email-index-n-search". A set of apps that allow indexing and searching emails on ZincSearch, "a search engine that does full-text indexing".
 
 ## Pre-requisites
 
@@ -48,29 +48,42 @@ or
 ```bash
 docker compose up -d
 ```
+3. Install dependencies:
 
-3. Open three (3) terminal windows/tabs at the root of the project in each one:
+    >Note: Choose either option i. or option ii. below:
     
-    1. On tab/window #1, run the following commands to install the dependencies for the `indexer` app:
+    1. Make command:
 
-        ```bash
-        cd indexer/
-        go mod download -x
-        ```
+        1. On the root directory of the repository, run the following command:
 
-    2. On tab/window #2, run the following commands to install the dependencies for the `server` app:
+            ```bash
+            make install
+            ```
 
-        ```bash
-        cd server/
-        go mod download -x
-        ```
+    2. Individual tabs/windows:
+        
+        Open three (3) terminal windows/tabs at the root of the project in each one:
+        
+        1. On tab/window #1, run the following commands to install the dependencies for the `indexer` app:
 
-    3. On tab/window #3, run the following commands to install the dependencies for the `emails-search-app` app:
+            ```bash
+            cd indexer/
+            go mod download -x
+            ```
 
-        ```bash
-        cd emails-search-app/
-        npm install
-        ```
+        2. On tab/window #2, run the following commands to install the dependencies for the `server` app:
+
+            ```bash
+            cd server/
+            go mod download -x
+            ```
+
+        3. On tab/window #3, run the following commands to install the dependencies for the `emails-search-app` app:
+
+            ```bash
+            cd emails-search-app/
+            npm install
+            ```
 
 4. Create and set the environment variables on a `.env` file for every app following the form of the `.env.example` file on each app's directory.
 

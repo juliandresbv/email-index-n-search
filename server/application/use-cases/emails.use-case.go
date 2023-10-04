@@ -2,6 +2,7 @@ package usecases
 
 import (
 	"encoding/json"
+
 	customlogger "pkg/custom-logger"
 	searchdbclient "pkg/zinc-search-db/db-client/search-db-client"
 	"pkg/zinc-search-db/db-client/search-db-client/dtos"
