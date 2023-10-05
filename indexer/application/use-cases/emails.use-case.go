@@ -13,6 +13,7 @@ import (
 	customlogger "pkg/custom-logger"
 	documentdbclient "pkg/zinc-search-db/db-client/document-db-client"
 
+	"indexer/application/types"
 	"indexer/application/utils"
 )
 
@@ -23,7 +24,7 @@ type EmailsUseCase struct {
 }
 
 type IEmailsUseCase interface {
-	BulkLoadEmails() error
+	BulkLoadEmails(datasetDataContext types.DatasetDataContext) error
 }
 
 func NewEmailsUseCase(documentDbClient documentdbclient.IDocumentDbClient) IEmailsUseCase {
@@ -32,9 +33,11 @@ func NewEmailsUseCase(documentDbClient documentdbclient.IDocumentDbClient) IEmai
 	}
 }
 
-func (emailsUseCase *EmailsUseCase) BulkLoadEmails() error {
-	jsonFilesPath := "./data/enron_mail_20110402_json"
-	jsonFilesDirExists := utils.PathExists(jsonFilesPath)
+func (emailsUseCase *EmailsUseCase) BulkLoadEmails(datasetDataContext types.DatasetDataContext) error {
+	dataDirPath := "./data"
+	jsonFilesDirPath := filepath.Join(dataDirPath, datasetDataContext.JsonFilesDirName)
+
+	jsonFilesDirExists := utils.PathExists(jsonFilesDirPath)
 
 	if !jsonFilesDirExists {
 		errorStr := "json files for bulk load not found"
@@ -44,7 +47,9 @@ func (emailsUseCase *EmailsUseCase) BulkLoadEmails() error {
 		return errors.New(errorStr)
 	}
 
-	bulkLoadResultFilePath := "./data/zs-bulkload-result.csv"
+	bulkLoadResultFileName := datasetDataContext.DatasetFileNameNoExt + "_zs-bulkload-result.csv"
+	bulkLoadResultFilePath := filepath.Join(dataDirPath, bulkLoadResultFileName)
+
 	bulkLoadResultFileExists := utils.PathExists(bulkLoadResultFilePath)
 
 	if bulkLoadResultFileExists {
@@ -67,7 +72,7 @@ func (emailsUseCase *EmailsUseCase) BulkLoadEmails() error {
 
 	logger.Println("bulk loading emails into DB...")
 
-	jsonFilesPaths, _ := utils.GetFilesPaths(jsonFilesPath, ".json")
+	jsonFilesPaths, _ := utils.GetFilesPaths(jsonFilesDirPath, ".json")
 	numJsonFiles := len(jsonFilesPaths)
 	recordsPerJsonFile := 1000
 	numApproxTotalEmails := numJsonFiles * recordsPerJsonFile

@@ -17,10 +17,13 @@ func init() {
 func main() {
 	defer profiling.SetupProfiling().Stop()
 
-	utils.DownloadAndDecompressDataset()
-	utils.DatasetToJsonFiles()
+	datasetFileName := "enron_mail_20110402.tgz"
+	datasetDataContext := utils.GetDatasetDataContext(datasetFileName)
+
+	utils.DownloadAndDecompressDataset(datasetDataContext)
+	utils.DatasetToJsonFiles(datasetDataContext)
 
 	documentDbClient := documentdbclient.NewDocumentDbClient(dbclienttypes.DbClientConfig{})
 	emailsUseCase := usecases.NewEmailsUseCase(documentDbClient)
-	emailsUseCase.BulkLoadEmails()
+	emailsUseCase.BulkLoadEmails(datasetDataContext)
 }

@@ -182,7 +182,7 @@ Below, there are the graphics of some results of the memory profiling analysis:
 
 At the initial stage of the development of the `indexer` app, the indexing process was developed with a [**sequential**](https://www.wikiwand.com/en/Sequential_algorithm) programming approach. However, after reviewing and assessing the resources consumed on the execution, it was found that tasks such as reading the dataset and parsing the data were taking a lot of resources and time while running.
 
-Looking at the OS Activity Monitor, the memory consumed by the indexer with the sequential programming approach was around 2.5 GB and it was increasing as time passed.
+Looking at the OS Activity Monitor, the memory consumed by the indexer with the sequential programming approach was around **~2.5 GB** and it was increasing as time passed.
 
 Therefore, another kind of approach should be implemented to improve the performance of the app.
 
@@ -214,7 +214,7 @@ The tasks that were re-factored to be executed concurrently were:
 
     Additionally, a [throttling](https://www.wikiwand.com/en/Rate_limiting) logic was also implemented to send HTTP requests every 750 milliseconds.
 
-Looking at the OS Activity Monitor, the memory consumed by the indexer with the concurrent approach was around 300 MB and it was stable as time passed.
+Looking at the OS Activity Monitor, the memory consumed by the indexer with the concurrent approach was around **~300 MB** and it was stable as time passed.
 
 #### JSON file size
 

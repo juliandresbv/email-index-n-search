@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/fs"
 	"math"
 	"net/http"
 	"os"
@@ -16,10 +15,12 @@ import (
 	"strings"
 	"sync"
 
+	"indexer/application/types"
+
 	customlogger "pkg/custom-logger"
 )
 
-var logger = customlogger.NewLogger()
+var loggerDatasetUtil = customlogger.NewLogger()
 
 var emailMetadataHeadersKeys = []string{
 	"MessageId",
@@ -67,80 +68,81 @@ var ignoredMetadataHeadersKeys = []string{
 	"ContentTransferEncoding",
 }
 
-func DownloadAndDecompressDataset() {
-	dataPath := "./data"
+func DownloadAndDecompressDataset(datasetDataContext types.DatasetDataContext) {
+	dataDirPath := "./data"
 
-	isDataDirCreated := PathExists(dataPath)
+	isDataDirCreated := PathExists(dataDirPath)
 
 	if !isDataDirCreated {
-		logger.Println("creating data directory...")
+		loggerDatasetUtil.Println("creating data directory...")
 
-		err := os.MkdirAll(dataPath, 0755)
+		err := os.MkdirAll(dataDirPath, 0755)
 
 		if err != nil {
-			logger.Fatalln("error creating data directory: ", err)
+			loggerDatasetUtil.Fatalln("error creating data directory: ", err)
 
 			panic(err)
 		}
 
-		logger.Println("data directory created successfully!")
+		loggerDatasetUtil.Println("data directory created successfully!")
 	} else {
-		logger.Println("data directory previously created")
+		loggerDatasetUtil.Println("data directory previously created")
 	}
 
-	datasetFileName := "enron_mail_20110402.tgz"
-	datasetFilePath := filepath.Join(dataPath, datasetFileName)
+	datasetFilePath := filepath.Join(dataDirPath, datasetDataContext.DatasetFileName)
 
 	isDatasetDownloaded := PathExists(datasetFilePath)
 
 	if !isDatasetDownloaded {
-		logger.Println("downloading dataset...")
+		loggerDatasetUtil.Println("downloading dataset...")
 
-		datasetUrl := fmt.Sprintf("https://www.cs.cmu.edu/~./enron/%v", datasetFileName)
+		datasetUrl := "https://www.cs.cmu.edu/~./enron/" + datasetDataContext.DatasetFileName
 
-		err := downloadFile(datasetUrl, datasetFileName)
+		err := downloadFile(datasetUrl, datasetDataContext)
 
 		if err != nil {
-			logger.Fatalln("error downloading dataset: ", err)
+			loggerDatasetUtil.Fatalln("error downloading dataset: ", err)
 
 			panic(err)
 		}
 
-		logger.Println("dataset downloaded successfully!")
+		loggerDatasetUtil.Println("dataset downloaded successfully!")
 	} else {
-		logger.Println("dataset previously downloaded")
+		loggerDatasetUtil.Println("dataset previously downloaded")
 	}
 
-	decompressedDatasetDirPath := "./data/enron_mail_20110402"
+	decompressedDatasetDirPath := filepath.Join(dataDirPath, datasetDataContext.DatasetFileNameNoExt)
 
 	isDatasetDecompressed := PathExists(decompressedDatasetDirPath)
 
 	if !isDatasetDecompressed {
-		logger.Println("decompressing dataset...")
+		loggerDatasetUtil.Println("decompressing dataset...")
 
-		err := decompressTgzFile()
+		err := decompressTgzFile(datasetDataContext)
 
 		if err != nil {
-			logger.Fatalln("error decompressing dataset: ", err)
+			loggerDatasetUtil.Fatalln("error decompressing dataset: ", err)
 
 			panic(err)
 		}
 
-		logger.Println("dataset decompressed successfully!")
+		loggerDatasetUtil.Println("dataset decompressed successfully!")
 	} else {
-		logger.Println("dataset previously decompressed")
+		loggerDatasetUtil.Println("dataset previously decompressed")
 	}
 }
 
-func DatasetToJsonFiles() {
-	jsonFilesDirPath := "./data/enron_mail_20110402_json"
+func DatasetToJsonFiles(datasetDataContext types.DatasetDataContext) {
+	dataDirPath := "./data"
+	jsonFilesDirPath := filepath.Join(dataDirPath, datasetDataContext.JsonFilesDirName)
+
 	jsonFilesDirExists := PathExists(jsonFilesDirPath)
 
 	if !jsonFilesDirExists {
 		err := os.MkdirAll(jsonFilesDirPath, 0755)
 
 		if err != nil {
-			logger.Fatalln("error creating json files directory: ", err)
+			loggerDatasetUtil.Fatalln("error creating json files directory: ", err)
 
 			panic(err)
 		}
@@ -149,7 +151,7 @@ func DatasetToJsonFiles() {
 	jsonFilesPaths, err := GetFilesPaths(jsonFilesDirPath, ".json")
 
 	if err != nil {
-		logger.Println("error getting json files paths: ", err)
+		loggerDatasetUtil.Println("error getting json files paths: ", err)
 
 		panic(err)
 	}
@@ -157,21 +159,22 @@ func DatasetToJsonFiles() {
 	numExistingJsonFiles := len(jsonFilesPaths)
 
 	if numExistingJsonFiles > 0 {
-		logger.Println("json files previously created")
+		loggerDatasetUtil.Println("json files previously created")
 
 		return
 	}
 
-	datasetDirPath := "./data/enron_mail_20110402/maildir/"
-	datasetFilesPaths, err := GetFilesPaths(datasetDirPath, ".")
+	decompressedDatasetDirPath := filepath.Join(dataDirPath, datasetDataContext.DatasetFileNameNoExt)
+
+	datasetFilesPaths, err := GetFilesPaths(decompressedDatasetDirPath, ".")
 
 	if err != nil {
-		logger.Println("error getting dataset files paths: ", err)
+		loggerDatasetUtil.Println("error getting dataset files paths: ", err)
 
 		panic(err)
 	}
 
-	logger.Println("creating json files...")
+	loggerDatasetUtil.Println("creating json files...")
 
 	chunkSize := 1000
 	numFiles := len(datasetFilesPaths)
@@ -197,59 +200,37 @@ func DatasetToJsonFiles() {
 		chunkId := (i / chunkSize) + 1
 
 		wg.Add(1)
-		go datasetChunkToJsonFile(filesPathsChunk, chunkId, sem, &wg)
+		go datasetChunkToJsonFile(filesPathsChunk, chunkId, jsonFilesDirPath, sem, &wg)
 
-		logger.Printf("%v out of %v emails to json file\n", chunkEnd, numFiles)
+		loggerDatasetUtil.Printf("%v out of %v emails to json file\n", chunkEnd, numFiles)
 	}
 
 	wg.Wait()
 
-	logger.Println("json files created successfully!")
+	loggerDatasetUtil.Println("json files created successfully!")
 }
 
-func PathExists(path string) bool {
-	_, err := os.Stat(path)
+func GetDatasetDataContext(datasetFileName string) types.DatasetDataContext {
+	datasetFileNameNoExt := strings.Split(datasetFileName, ".")[0]
+	jsonFilesDirName := datasetFileNameNoExt + "_json"
 
-	return !os.IsNotExist(err)
-}
-
-func GetFilesPaths(dirPath string, extension string) ([]string, error) {
-	filesPaths := []string{}
-
-	err := filepath.WalkDir(
-		dirPath,
-		func(path string, info fs.DirEntry, err error) error {
-			if err != nil {
-				logger.Println("error getting files paths: ", err)
-
-				return err
-			}
-
-			if !info.IsDir() && filepath.Ext(info.Name()) == extension {
-				filesPaths = append(filesPaths, path)
-			}
-
-			return nil
-		},
-	)
-
-	if err != nil {
-		logger.Println("error getting files paths: ", err)
-
-		return nil, err
+	datasetDataContext := types.DatasetDataContext{
+		DatasetFileName:      datasetFileName,
+		DatasetFileNameNoExt: datasetFileNameNoExt,
+		JsonFilesDirName:     jsonFilesDirName,
 	}
 
-	return filesPaths, nil
+	return datasetDataContext
 }
 
 func downloadFile(
 	datasetUrl string,
-	datasetFileName string,
+	datasetDataContext types.DatasetDataContext,
 ) error {
 	resp, err := http.Head(datasetUrl)
 
 	if err != nil {
-		logger.Println("error getting dataset metadata from URL: ", err)
+		loggerDatasetUtil.Println("error getting dataset metadata from URL: ", err)
 
 		return err
 	}
@@ -265,10 +246,11 @@ func downloadFile(
 
 	chunkSize := contentSizeBytes / numChunks
 
-	file, err := os.Create(filepath.Join("./data", datasetFileName))
+	datasetFilePath := filepath.Join("./data", datasetDataContext.DatasetFileName)
+	file, err := os.Create(datasetFilePath)
 
 	if err != nil {
-		logger.Println("error creating file to download: ", err)
+		loggerDatasetUtil.Println("error creating file to download: ", err)
 
 		return err
 	}
@@ -310,7 +292,7 @@ func downloadFileChunk(
 	resp, err := http.DefaultClient.Do(req)
 
 	if err != nil {
-		logger.Println("error downloading chunk: ", err)
+		loggerDatasetUtil.Println("error downloading chunk: ", err)
 
 		return err
 	}
@@ -324,7 +306,7 @@ func downloadFileChunk(
 		n, err := resp.Body.Read(buf)
 
 		if err != nil && err != io.EOF {
-			logger.Println("error reading file to download: ", err)
+			loggerDatasetUtil.Println("error reading file to download: ", err)
 
 			return err
 		}
@@ -335,7 +317,7 @@ func downloadFileChunk(
 		_, err = writer.WriteAt(buf[:n], int64(startByte))
 
 		if err != nil {
-			logger.Println("error writing file to download: ", err)
+			loggerDatasetUtil.Println("error writing file to download: ", err)
 
 			return err
 		}
@@ -346,14 +328,14 @@ func downloadFileChunk(
 	return nil
 }
 
-func decompressTgzFile() error {
-	datasetFilePath := "./data/enron_mail_20110402.tgz"
-	destination := "./data"
+func decompressTgzFile(datasetDataContext types.DatasetDataContext) error {
+	dataDirPath := "./data"
+	datasetFilePath := filepath.Join(dataDirPath, datasetDataContext.DatasetFileName)
 
 	tgzFile, err := os.Open(datasetFilePath)
 
 	if err != nil {
-		logger.Println("error opening tgz file: ", err)
+		loggerDatasetUtil.Println("error opening tgz file: ", err)
 
 		return err
 	}
@@ -363,7 +345,7 @@ func decompressTgzFile() error {
 	gzReader, err := gzip.NewReader(tgzFile)
 
 	if err != nil {
-		logger.Println("error creating gzip reader: ", err)
+		loggerDatasetUtil.Println("error creating gzip reader: ", err)
 
 		return err
 	}
@@ -384,7 +366,14 @@ func decompressTgzFile() error {
 			continue
 		}
 
-		target := filepath.Join(destination, tarHeader.Name)
+		var target string
+		compressedFileOriginalFirstDir := strings.Split(tarHeader.Name, "/")[0]
+
+		if compressedFileOriginalFirstDir != datasetDataContext.DatasetFileNameNoExt {
+			target = filepath.Join(dataDirPath, datasetDataContext.DatasetFileNameNoExt, tarHeader.Name)
+		} else {
+			target = filepath.Join(dataDirPath, tarHeader.Name)
+		}
 
 		switch tarHeader.Typeflag {
 		case tar.TypeDir:
@@ -394,7 +383,7 @@ func decompressTgzFile() error {
 				err := os.MkdirAll(target, os.FileMode(tarHeader.Mode))
 
 				if err != nil {
-					logger.Println("error creating directory: ", err)
+					loggerDatasetUtil.Println("error creating directory: ", err)
 
 					return err
 				}
@@ -403,7 +392,7 @@ func decompressTgzFile() error {
 			err := os.MkdirAll(filepath.Dir(target), 0755)
 
 			if err != nil {
-				logger.Println("error creating directory: ", err)
+				loggerDatasetUtil.Println("error creating directory: ", err)
 
 				return err
 			}
@@ -411,7 +400,7 @@ func decompressTgzFile() error {
 			file, err := os.Create(target)
 
 			if err != nil {
-				logger.Println("error creating file: ", err)
+				loggerDatasetUtil.Println("error creating file: ", err)
 
 				return err
 			}
@@ -419,7 +408,7 @@ func decompressTgzFile() error {
 			_, err = io.Copy(file, tarReader)
 
 			if err != nil {
-				logger.Println("error copying file: ", err)
+				loggerDatasetUtil.Println("error copying file: ", err)
 
 				file.Close()
 
@@ -434,16 +423,17 @@ func decompressTgzFile() error {
 func datasetChunkToJsonFile(
 	filesPathsChunk []string,
 	chunkId int,
+	jsonFilesDirPath string,
 	sem chan struct{},
 	wg *sync.WaitGroup,
 ) error {
 	defer wg.Done()
 	defer func() { <-sem }()
 
-	err := writeJsonFile(filesPathsChunk, chunkId)
+	err := writeJsonFile(filesPathsChunk, chunkId, jsonFilesDirPath)
 
 	if err != nil {
-		logger.Println("error writing json file: ", err)
+		loggerDatasetUtil.Println("error writing json file: ", err)
 
 		return err
 	}
@@ -454,14 +444,14 @@ func datasetChunkToJsonFile(
 func writeJsonFile(
 	filesPathsChunk []string,
 	chunkId int,
+	jsonFilesDirPath string,
 ) error {
-	jsonFilesPath := "./data/enron_mail_20110402_json"
 	jsonFileName := fmt.Sprintf("emails-%v.json", chunkId)
 
-	jsonFile, err := os.Create(filepath.Join(jsonFilesPath, jsonFileName))
+	jsonFile, err := os.Create(filepath.Join(jsonFilesDirPath, jsonFileName))
 
 	if err != nil {
-		logger.Println("error creating json file: ", err)
+		loggerDatasetUtil.Println("error creating json file: ", err)
 
 		return err
 	}
@@ -483,7 +473,7 @@ func writeJsonFile(
 		fileData, err = os.Open(path)
 
 		if err != nil {
-			logger.Println("error opening file: ", err)
+			loggerDatasetUtil.Println("error opening file: ", err)
 
 			return err
 		}
@@ -559,7 +549,7 @@ func writeJsonFile(
 		emailMapJson, err := json.Marshal(emailMap)
 
 		if err != nil {
-			logger.Println("error marshaling email map: ", err)
+			loggerDatasetUtil.Println("error marshaling email map: ", err)
 
 			return err
 		}
