@@ -47,8 +47,7 @@ func (emailsUseCase *EmailsUseCase) BulkLoadEmails(datasetDataContext types.Data
 		return errors.New(errorStr)
 	}
 
-	bulkLoadResultFileName := datasetDataContext.DatasetFileNameNoExt + "_zs-bulkload-result.csv"
-	bulkLoadResultFilePath := filepath.Join(dataDirPath, bulkLoadResultFileName)
+	bulkLoadResultFilePath := filepath.Join(dataDirPath, datasetDataContext.ZincSearchBulkLoadResultFileName)
 
 	bulkLoadResultFileExists := utils.PathExists(bulkLoadResultFilePath)
 
@@ -103,7 +102,7 @@ func (emailsUseCase *EmailsUseCase) BulkLoadEmails(datasetDataContext types.Data
 		numLoadedFiles := index + 1
 		numLoadedEmails := numLoadedFiles * recordsPerJsonFile
 
-		if numLoadedFiles%numGoRoutines == 0 || numLoadedFiles == numJsonFiles {
+		if numLoadedEmails%(numGoRoutines*recordsPerJsonFile) == 0 || numLoadedFiles == numJsonFiles {
 			logger.Printf("%d out of ~%d emails loaded into DB\n", numLoadedEmails, numApproxTotalEmails)
 		}
 	}

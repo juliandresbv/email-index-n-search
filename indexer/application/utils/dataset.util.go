@@ -5,6 +5,7 @@ import (
 	"bufio"
 	"compress/gzip"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"math"
@@ -15,9 +16,9 @@ import (
 	"strings"
 	"sync"
 
-	"indexer/application/types"
-
 	customlogger "pkg/custom-logger"
+
+	"indexer/application/types"
 )
 
 var loggerDatasetUtil = customlogger.NewLogger()
@@ -202,7 +203,9 @@ func DatasetToJsonFiles(datasetDataContext types.DatasetDataContext) {
 		wg.Add(1)
 		go datasetChunkToJsonFile(filesPathsChunk, chunkId, jsonFilesDirPath, sem, &wg)
 
-		loggerDatasetUtil.Printf("%v out of %v emails to json file\n", chunkEnd, numFiles)
+		if chunkEnd%(numGoRoutines*chunkSize) == 0 || chunkEnd == numFiles {
+			loggerDatasetUtil.Printf("%v out of %v emails to json file\n", chunkEnd, numFiles)
+		}
 	}
 
 	wg.Wait()
@@ -210,17 +213,26 @@ func DatasetToJsonFiles(datasetDataContext types.DatasetDataContext) {
 	loggerDatasetUtil.Println("json files created successfully!")
 }
 
-func GetDatasetDataContext(datasetFileName string) types.DatasetDataContext {
-	datasetFileNameNoExt := strings.Split(datasetFileName, ".")[0]
-	jsonFilesDirName := datasetFileNameNoExt + "_json"
+func GetDatasetDataContext(datasetFileName string) (types.DatasetDataContext, error) {
+	datasetFileNameHasExt := strings.Contains(datasetFileName, ".")
 
-	datasetDataContext := types.DatasetDataContext{
-		DatasetFileName:      datasetFileName,
-		DatasetFileNameNoExt: datasetFileNameNoExt,
-		JsonFilesDirName:     jsonFilesDirName,
+	if !datasetFileNameHasExt {
+		errorStr := "dataset file name must have an extension"
+
+		loggerDatasetUtil.Println(errorStr)
+		return types.DatasetDataContext{}, errors.New(errorStr)
 	}
 
-	return datasetDataContext
+	datasetFileNameNoExt := strings.Split(datasetFileName, ".")[0]
+	jsonFilesDirName := datasetFileNameNoExt + "_json"
+	zincSearchBulkLoadResultFileName := datasetFileNameNoExt + "_zs_bulkload_result.csv"
+
+	return types.DatasetDataContext{
+		DatasetFileName:                  datasetFileName,
+		DatasetFileNameNoExt:             datasetFileNameNoExt,
+		JsonFilesDirName:                 jsonFilesDirName,
+		ZincSearchBulkLoadResultFileName: zincSearchBulkLoadResultFileName,
+	}, nil
 }
 
 func downloadFile(

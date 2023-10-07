@@ -44,7 +44,6 @@
           </tbody>
         </table>
       </div>
-
       <div class="flex items-center justify-between bg-white">
         <div class="w-1/2 px-5 py-5 flex flex-col xs:flex-row items-center xs:justify-between">
           <span class="text-xs xs:text-sm text-gray-900 font-semibold">
