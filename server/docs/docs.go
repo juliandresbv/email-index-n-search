@@ -75,6 +75,9 @@ const docTemplate = `{
                 "page": {
                     "type": "integer"
                 },
+                "searchType": {
+                    "type": "string"
+                },
                 "term": {
                     "type": "string"
                 }

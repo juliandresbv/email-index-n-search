@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="mt-4 mb-10 mx-5">
+    <div class="mt-5 mb-10 mx-5">
       <SearchBar />
     </div>
     <div class="flex max-h-[90vh]">

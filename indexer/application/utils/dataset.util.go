@@ -80,7 +80,7 @@ func DownloadAndDecompressDataset(datasetDataContext types.DatasetDataContext) {
 		err := os.MkdirAll(dataDirPath, 0755)
 
 		if err != nil {
-			loggerDatasetUtil.Fatalln("error creating data directory: ", err)
+			loggerDatasetUtil.Println("error creating data directory: ", err)
 
 			panic(err)
 		}
@@ -102,7 +102,7 @@ func DownloadAndDecompressDataset(datasetDataContext types.DatasetDataContext) {
 		err := downloadFile(datasetUrl, datasetDataContext)
 
 		if err != nil {
-			loggerDatasetUtil.Fatalln("error downloading dataset: ", err)
+			loggerDatasetUtil.Println("error downloading dataset: ", err)
 
 			panic(err)
 		}
@@ -122,7 +122,7 @@ func DownloadAndDecompressDataset(datasetDataContext types.DatasetDataContext) {
 		err := decompressTgzFile(datasetDataContext)
 
 		if err != nil {
-			loggerDatasetUtil.Fatalln("error decompressing dataset: ", err)
+			loggerDatasetUtil.Println("error decompressing dataset: ", err)
 
 			panic(err)
 		}
@@ -143,7 +143,7 @@ func DatasetToJsonFiles(datasetDataContext types.DatasetDataContext) {
 		err := os.MkdirAll(jsonFilesDirPath, 0755)
 
 		if err != nil {
-			loggerDatasetUtil.Fatalln("error creating json files directory: ", err)
+			loggerDatasetUtil.Println("error creating json files directory: ", err)
 
 			panic(err)
 		}
@@ -213,14 +213,14 @@ func DatasetToJsonFiles(datasetDataContext types.DatasetDataContext) {
 	loggerDatasetUtil.Println("json files created successfully!")
 }
 
-func GetDatasetDataContext(datasetFileName string) (types.DatasetDataContext, error) {
+func GetDatasetDataContext(datasetFileName string) types.DatasetDataContext {
 	datasetFileNameHasExt := strings.Contains(datasetFileName, ".")
 
 	if !datasetFileNameHasExt {
 		errorStr := "dataset file name must have an extension"
-
 		loggerDatasetUtil.Println(errorStr)
-		return types.DatasetDataContext{}, errors.New(errorStr)
+
+		panic(errors.New(errorStr))
 	}
 
 	datasetFileNameNoExt := strings.Split(datasetFileName, ".")[0]
@@ -232,7 +232,7 @@ func GetDatasetDataContext(datasetFileName string) (types.DatasetDataContext, er
 		DatasetFileNameNoExt:             datasetFileNameNoExt,
 		JsonFilesDirName:                 jsonFilesDirName,
 		ZincSearchBulkLoadResultFileName: zincSearchBulkLoadResultFileName,
-	}, nil
+	}
 }
 
 func downloadFile(

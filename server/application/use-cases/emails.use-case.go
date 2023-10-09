@@ -9,7 +9,6 @@ import (
 
 	controllersemailsdtos "server/adapter/controllers/emails/dtos"
 	"server/adapter/controllers/emails/responses"
-	"server/application/use-cases/enums"
 	"server/domain/models"
 )
 
@@ -37,17 +36,18 @@ func (emailsUseCase *EmailsUseCase) SearchEmails(
 	term := searchEmailsDto.Term
 	from := (searchEmailsDto.Page - 1) * searchEmailsDto.Limit
 	maxResults := searchEmailsDto.Limit
+	searchType := searchEmailsDto.SearchType
 
 	searchSearchV1Dto := dtos.SearchSearchV1Dto{
-		SearchType: enums.SearchTypeMatch,
+		SearchType: searchType,
 		Query: dtos.QuerySearchSearchV1Dto{
 			Term: term,
 		},
+		From:       from,
+		MaxResults: maxResults,
 		SortFields: []string{
 			"-@timestamp",
 		},
-		From:       from,
-		MaxResults: maxResults,
 	}
 
 	response, err := emailsUseCase.searchDbClient.SearchV1(indexName, searchSearchV1Dto)

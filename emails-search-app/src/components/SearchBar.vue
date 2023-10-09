@@ -1,7 +1,7 @@
 <template>
-  <div class="flex items-center">
-    <div class="w-1/6">
-      <div class="flex items-center">
+  <div class="flex items-center justify-between">
+    <div class="w-[18vw]">
+      <div class="flex items-center justify-start">
         <svg
           class="w-6 h-6 mx-2 text-black dark:text-black"
           aria-hidden="true"
@@ -19,9 +19,9 @@
         <span class="font-semibold text-3xl">Emails Search App</span>
       </div>
     </div>
-    <div class="w-5/6">
+    <div class="w-[72vw]">
       <div
-        class="border relative flex items-center h-12 rounded-lg focus-within:shadow-md bg-white overflow-hidden"
+        class="border relative flex items-center h-14 rounded-lg focus-within:shadow-md bg-white overflow-hidden"
       >
         <div class="grid place-items-center h-full w-12 text-gray-300">
           <svg
@@ -40,13 +40,34 @@
           </svg>
         </div>
         <input
-          class="peer h-full w-full outline-none text-gray-700 pr-2 font-semibold"
+          class="peer h-full w-full outline-none text-gray-700 pr-2 font-bold text-xl"
           id="search-emails-input"
           name="search-emails-input"
           type="text"
           placeholder="Search emails..."
-          @input="emailsSearchRequest"
+          @input="searchEmails"
         />
+      </div>
+    </div>
+    <div class="w-[10vw]">
+      <div class="flex flex-col items-center justify-end">
+        <span class="text-xs xs:text-sm text-gray-900 font-semibold"> Search type </span>
+        <div class="inline-flex mt-1">
+          <select
+            class="text-sm text-gray-800 py-2 px-4 rounded border"
+            name="email-search-type"
+            id="email-search-type"
+            @change="changeSearchType"
+          >
+            <option value="match">Match</option>
+            <option value="matchphrase">Match phrase</option>
+            <option value="term">Term</option>
+            <option value="querystring">Query string</option>
+            <option value="prefix">Prefix</option>
+            <option value="wildcard">Wildcard</option>
+            <option value="fuzzy">Fuzzy</option>
+          </select>
+        </div>
       </div>
     </div>
   </div>
@@ -64,17 +85,20 @@ const componentsRefsStore = useComponentsRefsStore()
 
 const { page } = storeToRefs(componentsRefsStore)
 const { limit } = storeToRefs(componentsRefsStore)
+const { searchTerm } = storeToRefs(componentsRefsStore)
+const { searchType } = storeToRefs(componentsRefsStore)
 
 const debounceTimeout = 500
 
 let timeoutId: NodeJS.Timeout | null = null
 
-const emailsSearchRequest = async (event: any) => {
-  const term = event.target.value.trim()
+const searchEmails = async (event: any) => {
+  const inputSearchTerm = event.target.value.trim()
 
-  if (term.length <= 0) {
+  if (inputSearchTerm == null || inputSearchTerm.length <= 0) {
     emailsStore.$reset()
     componentsRefsStore.resetSearchTerm()
+    componentsRefsStore.resetPage()
 
     return
   }
@@ -84,11 +108,58 @@ const emailsSearchRequest = async (event: any) => {
   }
 
   timeoutId = setTimeout(async () => {
-    componentsRefsStore.setSearchTerm(term)
+    componentsRefsStore.setSearchTerm(inputSearchTerm)
     componentsRefsStore.resetPage()
 
     const searchEmailsReq = await makeRequest<EmailsSearchResponse>('POST', '/emails/search', {
-      term: term,
+      term: searchTerm.value,
+      searchType: searchType.value,
+      page: page.value,
+      limit: limit.value
+    })
+
+    if (!searchEmailsReq) {
+      emailsStore.$reset()
+
+      return
+    }
+
+    const { emails, hits } = searchEmailsReq.data
+
+    if (!emails || emails?.length <= 0 || !hits || hits <= 0) {
+      emailsStore.$reset()
+
+      return
+    }
+
+    emailsStore.setEmails(emails)
+    emailsStore.setHits(hits)
+  }, debounceTimeout)
+}
+
+const changeSearchType = async (event: any) => {
+  const inputSearchType = event.target.value
+
+  if (inputSearchType == null || inputSearchType.length <= 0) {
+    return
+  }
+
+  componentsRefsStore.setSearchType(inputSearchType)
+
+  if (searchTerm.value.length <= 0) {
+    return
+  }
+
+  if (timeoutId) {
+    clearTimeout(timeoutId)
+  }
+
+  timeoutId = setTimeout(async () => {
+    componentsRefsStore.resetPage()
+
+    const searchEmailsReq = await makeRequest<EmailsSearchResponse>('POST', '/emails/search', {
+      term: searchTerm.value,
+      searchType: searchType.value,
       page: page.value,
       limit: limit.value
     })

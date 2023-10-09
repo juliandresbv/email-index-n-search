@@ -41,7 +41,6 @@ func (emailsUseCase *EmailsUseCase) BulkLoadEmails(datasetDataContext types.Data
 
 	if !jsonFilesDirExists {
 		errorStr := "json files for bulk load not found"
-
 		logger.Println(errorStr)
 
 		return errors.New(errorStr)
@@ -78,8 +77,8 @@ func (emailsUseCase *EmailsUseCase) BulkLoadEmails(datasetDataContext types.Data
 
 	if numJsonFiles <= 0 {
 		errorStr := "no json files found for bulk load"
-
 		logger.Println(errorStr)
+
 		return errors.New(errorStr)
 	}
 

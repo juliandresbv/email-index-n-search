@@ -36,8 +36,8 @@ func NewDbApiGateway() IDbApiGateway {
 
 	if dbHost == "" || dbPort == "" || dbUser == "" || dbPassword == "" {
 		errorStr := "invalid database credentials"
-
 		logger.Println(errorStr)
+
 		panic(errorStr)
 	}
 
@@ -107,7 +107,6 @@ func (dbApiGateway *DbApiGateway) MakeDbApiRequest(
 	if response.StatusCode < 200 || response.StatusCode > 299 {
 		errorStr := fmt.Sprintf("%v", unmarshaledResBody)
 		apiResponse.Message = errorStr
-
 		logger.Println(errorStr)
 
 		return apiResponse, fmt.Errorf(errorStr)

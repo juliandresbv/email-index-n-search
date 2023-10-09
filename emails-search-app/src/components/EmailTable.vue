@@ -16,10 +16,12 @@
               <td class="px-5 py-5 border-b border-gray-200 text-sm">
                 <div class="flex-col">
                   <div class="flex justify-between">
-                    <p class="w-2/3 text-gray-900 whitespace-no-wrap truncate text-left font-bold">
+                    <p
+                      class="w-[16vw] mr-3 text-gray-900 whitespace-no-wrap truncate text-left font-bold"
+                    >
                       {{ email.subject ? email.subject : '(No subject)' }}
                     </p>
-                    <p class="w-[20vh] text-gray-500 whitespace-no-wrap truncate text-right">
+                    <p class="w-[12vw] ml-3 text-gray-500 whitespace-no-wrap truncate text-right">
                       {{ email.date }}
                     </p>
                   </div>
@@ -33,8 +35,8 @@
             </tr>
           </tbody>
           <tbody v-else>
-            <tr class="bg-white" v-for="n in 10" :key="'empty-row' + n">
-              <td v-if="n == 5" class="px-5 py-5 border-b border-gray-200 text-sm">
+            <tr class="bg-white" v-for="n in 11" :key="'empty-row' + n">
+              <td v-if="n == 6" class="px-5 py-5 border-b border-gray-200 text-sm">
                 <p class="text-gray-500 text-center">No data</p>
               </td>
               <td v-else class="px-5 py-5 border-b border-gray-200 text-sm">
@@ -118,6 +120,7 @@ const { emails } = storeToRefs(emailsStore)
 const { page } = storeToRefs(componentsRefsStore)
 const { limit } = storeToRefs(componentsRefsStore)
 const { searchTerm } = storeToRefs(componentsRefsStore)
+const { searchType } = storeToRefs(componentsRefsStore)
 
 const maxPages = ref(0)
 
@@ -157,6 +160,7 @@ const prevPage = async () => {
   timeoutId = setTimeout(async () => {
     const searchEmailsReq = await makeRequest<EmailsSearchResponse>('POST', '/emails/search', {
       term: searchTerm.value,
+      searchType: searchType.value,
       page: page.value,
       limit: limit.value
     })
@@ -198,6 +202,7 @@ const nextPage = async () => {
   timeoutId = setTimeout(async () => {
     const searchEmailsReq = await makeRequest<EmailsSearchResponse>('POST', '/emails/search', {
       term: searchTerm.value,
+      searchType: searchType.value,
       page: page.value,
       limit: limit.value
     })
@@ -239,6 +244,7 @@ const changeLimit = async (event: any) => {
   timeoutId = setTimeout(async () => {
     const searchEmailsReq = await makeRequest<EmailsSearchResponse>('POST', '/emails/search', {
       term: searchTerm.value,
+      searchType: searchType.value,
       page: page.value,
       limit: limit.value
     })
@@ -286,6 +292,7 @@ const changePage = (event: any) => {
   timeoutId = setTimeout(async () => {
     const searchEmailsReq = await makeRequest<EmailsSearchResponse>('POST', '/emails/search', {
       term: searchTerm.value,
+      searchType: searchType.value,
       page: page.value,
       limit: limit.value
     })

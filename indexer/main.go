@@ -18,7 +18,7 @@ func main() {
 	defer profiling.SetupProfiling().Stop()
 
 	datasetFileName := "enron_mail_20110402.tgz"
-	datasetDataContext, _ := utils.GetDatasetDataContext(datasetFileName)
+	datasetDataContext := utils.GetDatasetDataContext(datasetFileName)
 
 	utils.DownloadAndDecompressDataset(datasetDataContext)
 	utils.DatasetToJsonFiles(datasetDataContext)

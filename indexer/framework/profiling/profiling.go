@@ -13,9 +13,9 @@ const (
 	threadProfileMode    = "thread"
 )
 
-type DefaultProfile struct{}
+type defaultProfile struct{}
 
-func (DefaultProfile) Stop() {}
+func (defaultProfile) Stop() {}
 
 func SetupProfiling() interface{ Stop() } {
 	profilingPath := "./profiling-results"
@@ -34,6 +34,6 @@ func SetupProfiling() interface{ Stop() } {
 	case threadProfileMode:
 		return profile.Start(profile.ThreadcreationProfile, profile.ProfilePath(profilingPath))
 	default:
-		return DefaultProfile{}
+		return defaultProfile{}
 	}
 }
