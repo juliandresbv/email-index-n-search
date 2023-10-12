@@ -514,7 +514,10 @@ func writeJsonFile(
 
 					emailMetadataHeadersValue := emailMetadataHeadersMap[key]
 
-					if strings.HasPrefix(lineToCheckMetadataHeaderPrefix, emailMetadataHeadersValue) {
+					_, wasPreviouslyAssigned := emailMap[key]
+
+					if strings.HasPrefix(lineToCheckMetadataHeaderPrefix, emailMetadataHeadersValue) &&
+						!wasPreviouslyAssigned {
 						isMetadataLine = true
 						currMetadataKey = key
 
@@ -540,7 +543,13 @@ func writeJsonFile(
 							continue
 						}
 
-						emailMap[currMetadataKey] = lineContent
+						if currMetadataKey == "Date" {
+							iso8601Date, _ := DatasetDateToISO8601Date(lineContent)
+
+							emailMap[currMetadataKey] = iso8601Date
+						} else {
+							emailMap[currMetadataKey] = lineContent
+						}
 					} else {
 						lineContent = strings.TrimSpace(lineContent)
 

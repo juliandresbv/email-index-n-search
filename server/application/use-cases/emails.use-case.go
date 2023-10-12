@@ -46,14 +46,14 @@ func (emailsUseCase *EmailsUseCase) SearchEmails(
 		From:       from,
 		MaxResults: maxResults,
 		SortFields: []string{
-			"-@timestamp",
+			"-Date",
 		},
 	}
 
 	response, err := emailsUseCase.searchDbClient.SearchV1(indexName, searchSearchV1Dto)
 
 	if err != nil {
-		logger.Println(err)
+		logger.Println("Error on searchV1 ZincSearch API request: ", err)
 
 		return responses.SearchEmailsResponse{
 			Hits:   0,
