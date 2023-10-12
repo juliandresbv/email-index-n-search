@@ -470,10 +470,6 @@ func writeJsonFile(
 
 	defer jsonFile.Close()
 
-	var fileData *os.File
-
-	defer fileData.Close()
-
 	numFilesChunk := len(filesPathsChunk)
 	indexName := "emails"
 
@@ -482,13 +478,15 @@ func writeJsonFile(
 	jsonFile.WriteString("\"records\": [\n")
 
 	for index, path := range filesPathsChunk {
-		fileData, err = os.Open(path)
+		fileData, err := os.Open(path)
 
 		if err != nil {
 			loggerDatasetUtil.Println("error opening file: ", err)
 
 			return err
 		}
+
+		defer fileData.Close()
 
 		fileDataScanner := bufio.NewScanner(fileData)
 

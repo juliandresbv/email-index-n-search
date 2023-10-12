@@ -76,8 +76,10 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
 
+import { debounce } from '../utils'
 import { makeRequest } from '../services'
 import type { EmailsSearchResponse } from '../types'
+import { updateEmailsStoreState } from '../stores/utils'
 import { useEmailsStore, useComponentsRefsStore } from '../stores'
 
 const emailsStore = useEmailsStore()
@@ -90,7 +92,7 @@ const { searchType } = storeToRefs(componentsRefsStore)
 
 const debounceTimeout = 500
 
-let timeoutId: NodeJS.Timeout | null = null
+const debouncedMakeRequest = debounce(makeRequest<EmailsSearchResponse>, debounceTimeout)
 
 const searchEmails = async (event: any) => {
   const inputSearchTerm = event.target.value.trim()
@@ -103,38 +105,17 @@ const searchEmails = async (event: any) => {
     return
   }
 
-  if (timeoutId) {
-    clearTimeout(timeoutId)
-  }
+  componentsRefsStore.setSearchTerm(inputSearchTerm)
+  componentsRefsStore.resetPage()
 
-  timeoutId = setTimeout(async () => {
-    componentsRefsStore.setSearchTerm(inputSearchTerm)
-    componentsRefsStore.resetPage()
+  const searchEmailsResponseData = await debouncedMakeRequest('POST', '/emails/search', {
+    term: searchTerm.value,
+    searchType: searchType.value,
+    page: page.value,
+    limit: limit.value
+  })
 
-    const searchEmailsReq = await makeRequest<EmailsSearchResponse>('POST', '/emails/search', {
-      term: searchTerm.value,
-      searchType: searchType.value,
-      page: page.value,
-      limit: limit.value
-    })
-
-    if (!searchEmailsReq) {
-      emailsStore.$reset()
-
-      return
-    }
-
-    const { emails, hits } = searchEmailsReq.data
-
-    if (!emails || emails?.length <= 0 || !hits || hits <= 0) {
-      emailsStore.$reset()
-
-      return
-    }
-
-    emailsStore.setEmails(emails)
-    emailsStore.setHits(hits)
-  }, debounceTimeout)
+  updateEmailsStoreState(searchEmailsResponseData, emailsStore)
 }
 
 const changeSearchType = async (event: any) => {
@@ -150,36 +131,13 @@ const changeSearchType = async (event: any) => {
     return
   }
 
-  if (timeoutId) {
-    clearTimeout(timeoutId)
-  }
+  const searchEmailsResponseData = await debouncedMakeRequest('POST', '/emails/search', {
+    term: searchTerm.value,
+    searchType: searchType.value,
+    page: page.value,
+    limit: limit.value
+  })
 
-  timeoutId = setTimeout(async () => {
-    componentsRefsStore.resetPage()
-
-    const searchEmailsReq = await makeRequest<EmailsSearchResponse>('POST', '/emails/search', {
-      term: searchTerm.value,
-      searchType: searchType.value,
-      page: page.value,
-      limit: limit.value
-    })
-
-    if (!searchEmailsReq) {
-      emailsStore.$reset()
-
-      return
-    }
-
-    const { emails, hits } = searchEmailsReq.data
-
-    if (!emails || emails?.length <= 0 || !hits || hits <= 0) {
-      emailsStore.$reset()
-
-      return
-    }
-
-    emailsStore.setEmails(emails)
-    emailsStore.setHits(hits)
-  }, debounceTimeout)
+  updateEmailsStoreState(searchEmailsResponseData, emailsStore)
 }
 </script>
